@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "Azure DevOps Clipboard Sanitizer",
+  "description": "Sanitizes theme related code when copying text on Azure Devops",
+  "version": "0.1",
+  "permissions": [
+    "clipboardRead",
+    "clipboardWrite"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://dev.azure.com/*"
+      ],
+      "js": ["extension.js"]
+    }
+  ]
+}
