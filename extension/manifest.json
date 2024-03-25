@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Azure DevOps Theme Sanitizer",
   "description": "Sanitizes theme related code when copying text on Azure DevOps",
-  "version": "0.1",
+  "version": "0.2",
   "permissions": [
     "clipboardRead",
     "clipboardWrite"

@@ -16,8 +16,19 @@ const getHTMLFromClipboardContents = async (clipboardContents) => {
   return blobs;
 }
 
-const spawnNotification = (count) => {
-  document.getElementById("sanitizerCount").innerText = count;
+const spawnNotification = (hasFontProblems, hasColorProblems) => {
+  let problemString;
+  if (hasColorProblems && hasFontProblems) {
+    problemString = "Color and font styling"
+  } else if (hasColorProblems) {
+    problemString = "Color"
+  } else if (hasColorProblems) {
+    problemString = "Font"
+  } else {
+    problemString = "No"
+  }
+
+  document.getElementById("sanitizerProblems").innerText = problemString;
   document.getElementById("clipboardSanitizerNotification").style.display = 'inline';
   setTimeout(() => { document.getElementById("clipboardSanitizerNotification").style.display = 'none' }, 2000);
 }
@@ -30,11 +41,21 @@ const sanitizeClipboard = async () => {
     return;
   }
 
-  const re = new RegExp("(color:[\s]?)(.*?)(;)", "gm");
-  const problemCount = [...result['text/html'].matchAll(re)].length;
-  if (problemCount) {
-    result['text/html'] = result['text/html'].replace(re, "$1 inherit$3");
-    spawnNotification(problemCount);
+  const reColor = new RegExp("(color:[\s]?)(.*?)(;)", "gm");
+  const reFont = new RegExp("(font:[\s]?)(.*?)(;)", "gm");
+  const reFontFamily = new RegExp("(font-family:[\s]?)(.*?)(;)", "gm");
+  const reFontSize = new RegExp("(font-size:[\s]?)(.*?)(;)", "gm");
+  const hasColorProblems = !![...result['text/html'].matchAll(reColor)].length;
+  const hasFontProblems = !!([...result['text/html'].matchAll(reFont)].length
+    || [...result['text/html'].matchAll(reFontFamily)].length
+    || [...result['text/html'].matchAll(reFontSize)].length
+  );
+  if (hasColorProblems || hasFontProblems) {
+    result['text/html'] = result['text/html'].replace(reColor, "$1 inherit$3");
+    result['text/html'] = result['text/html'].replace(reFont, "$1 inherit$3");
+    result['text/html'] = result['text/html'].replace(reFontFamily, "$1 inherit$3");
+    result['text/html'] = result['text/html'].replace(reFontSize, "$1 inherit$3");
+    spawnNotification(hasFontProblems, hasColorProblems);
 
     navigator.clipboard.write([new ClipboardItem({
       'text/plain': new Blob([result['text/plain']], { type: 'text/plain' }),
@@ -65,7 +86,7 @@ const styles = /*css*/`
 document.getElementsByTagName('body')[0].insertAdjacentHTML(
   'beforeBegin', `
     <div id="clipboardSanitizerNotification">
-      <span id="sanitizerCount">x</span> theme related problem(s) were fixed in the clipboard!
+      <span id="sanitizerProblems">x</span> problems were fixed in the clipboard!
     </div>
   `
 );
